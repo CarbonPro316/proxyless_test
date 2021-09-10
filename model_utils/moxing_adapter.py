@@ -83,42 +83,9 @@ def moxing_wrapper(pre_process=None, post_process=None):
         @functools.wraps(run_func)
         def wrapped_func(*args, **kwargs):
             # Download data from data_url
-            if config.enable_modelarts:
-                if config.data_url:
-                    sync_data(config.data_url, config.data_path)
-                    print('Dataset downloaded: ', os.listdir(config.data_path))
-                if config.checkpoint_url:
-                    if not os.path.exists(config.load_path):
-                        # os.makedirs(config.load_path)
-                        print('=' * 20 + 'makedirs')
-                        if os.path.isdir(config.load_path):
-                            print('=' * 20 + 'makedirs success')
-                        else:
-                            print('=' * 20 + 'makedirs fail')
-                    sync_data(config.checkpoint_url, config.load_path)
-                    print('Preload downloaded: ', os.listdir(config.load_path))
-                if config.train_url:
-                    sync_data(config.train_url, config.output_path)
-                    print('Workspace downloaded: ', os.listdir(config.output_path))
-
-                context.set_context(save_graphs_path=os.path.join(config.output_path, str(get_rank_id())))
-                config.device_num = get_device_num()
-                config.device_id = get_device_id()
-                if not os.path.exists(config.output_path):
-                    os.makedirs(config.output_path)
-
-                if pre_process:
-                    pre_process()
 
             run_func(*args, **kwargs)
 
             # Upload data to train_url
-            if config.enable_modelarts:
-                if post_process:
-                    post_process()
-
-                if config.train_url:
-                    print('Start to copy output directory')
-                    sync_data(config.output_path, config.train_url)
         return wrapped_func
     return wrapper

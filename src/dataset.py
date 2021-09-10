@@ -22,9 +22,9 @@ def create_dataset(dataset_path, do_train, device_num=1, rank=0, batch_size=100,
     """
 
     if device_num == 1 or do_train == False:
-        data_set = ds.ImageFolderDataset(dataset_path, num_parallel_workers=8, shuffle=shuffle)
+        data_set = ds.ImageFolderDataset(dataset_path, num_parallel_workers=1, shuffle=shuffle)
     else:
-        data_set = ds.ImageFolderDataset(dataset_path, num_parallel_workers=8, shuffle=shuffle,
+        data_set = ds.ImageFolderDataset(dataset_path, num_parallel_workers=1, shuffle=shuffle,
                                          num_shards=device_num, shard_id=rank)
     # define map operations
     if do_train:
@@ -60,8 +60,8 @@ def create_dataset(dataset_path, do_train, device_num=1, rank=0, batch_size=100,
         ]
 
     type_cast_op = C2.TypeCast(mstype.int32)
-    data_set = data_set.map(input_columns="image", operations=trans, num_parallel_workers=8)
-    data_set = data_set.map(input_columns="label", operations=type_cast_op, num_parallel_workers=8)
+    data_set = data_set.map(input_columns="image", operations=trans, num_parallel_workers=1)
+    data_set = data_set.map(input_columns="label", operations=type_cast_op, num_parallel_workers=1)
     # apply batch operations
     data_set = data_set.batch(batch_size, drop_remainder=drop_remainder)
     return data_set

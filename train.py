@@ -40,9 +40,6 @@ from model_utils.device_adapter import get_device_id, get_rank_id
 
 set_seed(1)
 
-def modelarts_pre_process():
-    pass
-
 best_acc = 0.0
 best_epoch = 0
    
@@ -57,12 +54,8 @@ class EvalCallBack(Callback):
         self.train_batches_per_epoch = train_batches_per_epoch
         self.device_id    = mindspore.context.get_context("device_id")
 
-        if config.enable_modelarts :
-           self.save_ckpt_path = config.output_path + '/' + os.getenv('DEVICE_ID') 
-           self.device_0_ckpt_path = config.output_path + '/0'
-        else:
-           self.save_ckpt_path = config.save_ckpt_path
-           self.device_0_ckpt_path = config.save_ckpt_path + '/0'
+        self.save_ckpt_path = config.save_ckpt_path
+        self.device_0_ckpt_path = config.save_ckpt_path + '/0'
         self.log_filename = os.path.join(self.save_ckpt_path , 'log_' + str(self.device_id) + '.txt' )
            
     def epoch_end(self, run_context):
@@ -118,7 +111,6 @@ class EvalCallBack(Callback):
 
 
 
-@moxing_wrapper(pre_process=modelarts_pre_process)
 def train():
     global best_acc
     global best_epoch
@@ -127,18 +119,9 @@ def train():
 
     context.set_context(mode=context.GRAPH_MODE, device_target="GPU", save_graphs=False)
     # init distributed
-    if config.is_distributed:
-        if os.getenv('DEVICE_ID', "not_set").isdigit():
-            context.set_context(device_id=get_device_id())
-        init()
-        rank = get_rank_id()
-        group_size = get_group_size()
-        parallel_mode = ParallelMode.DATA_PARALLEL
-        context.set_auto_parallel_context(parallel_mode=parallel_mode, device_num=group_size, gradients_mean=True)
-    else:
-        rank = 0
-        group_size = 1
-        context.set_context(device_id=config.device_id)
+    rank = 0
+    group_size = 1
+    context.set_context(device_id=config.device_id)
 
     # define network
     net = proxylessnas_mobile(num_classes = config.num_classes)
@@ -205,13 +188,11 @@ def train():
     # define callbacks
     eval_cb = EvalCallBack(net , model, val_dataset, 1 , train_batches_per_epoch )
 
-    if config.enable_modelarts :
-        save_ckpt_path = config.output_path + '/' + os.getenv('DEVICE_ID') 
-    else:
-        save_ckpt_path = config.save_ckpt_path
+
+    save_ckpt_path = config.save_ckpt_path
     config_ck = CheckpointConfig(save_checkpoint_steps=config.save_checkpoint_epochs * train_batches_per_epoch,
                                  keep_checkpoint_max=config.keep_checkpoint_max)
-    ckpt_cb = ModelCheckpoint("proxylessnas_mobile_device_"+os.getenv('DEVICE_ID'), directory=save_ckpt_path, config=config_ck)
+    ckpt_cb = ModelCheckpoint("proxylessnas_mobile_device_2", directory=save_ckpt_path, config=config_ck)
 
     cb = [ ckpt_cb, TimeMonitor(), LossMonitor(),eval_cb ]
 

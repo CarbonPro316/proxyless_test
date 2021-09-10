@@ -5,9 +5,9 @@ data_url: ""
 train_url: ""
 checkpoint_url: ""
 # path for local
-data_path: "/cache/data"
-output_path: "/cache/train"
-load_path: "/cache/checkpoint_path"
+data_path: "cache/data"
+output_path: "cache/train"
+load_path: "cache/checkpoint_path"
 #device_target: "Ascend"
 #目标设备：GPU
 device_targer: "GPU"
