@@ -125,7 +125,7 @@ def train():
 
     start_time = time.time()
 
-    context.set_context(mode=context.GRAPH_MODE, device_target=config.device_target, save_graphs=False)
+    context.set_context(mode=context.GRAPH_MODE, device_target="GPU", save_graphs=False)
     # init distributed
     if config.is_distributed:
         if os.getenv('DEVICE_ID', "not_set").isdigit():
